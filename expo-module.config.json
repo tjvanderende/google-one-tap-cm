@@ -1,0 +1,17 @@
+{
+  "platforms": [
+    "apple",
+    "android",
+    "web"
+  ],
+  "apple": {
+    "modules": [
+      "GoogleOneTapCmModule"
+    ]
+  },
+  "android": {
+    "modules": [
+      "expo.modules.googleonetapcm.GoogleOneTapCmModule"
+    ]
+  }
+}

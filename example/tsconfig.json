@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "google-one-tap-cm": ["../src/index"],
+      "google-one-tap-cm/*": ["../src/*"]
+    }
+  }
+}
