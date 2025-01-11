@@ -1,19 +1,34 @@
-import type { StyleProp, ViewStyle } from 'react-native';
-
-export type OnLoadEventPayload = {
-  url: string;
-};
-
 export type GoogleOneTapCmModuleEvents = {
-  onChange: (params: ChangeEventPayload) => void;
+  onLogin: (params: LoginEventPayload) => void;
 };
 
-export type ChangeEventPayload = {
-  value: string;
-};
+export type LoginEventPayload = {
+  success: boolean;
+  errorBody?: string;
+} & (
+  | {
+      type: GoogleOneTapCmType.PUBLIC_KEY;
+      successBody?: {
+        publicKey: string;
+      };
+    }
+  | {
+      type: GoogleOneTapCmType.PASSWORD;
+      successBody?: {
+        username: string;
+        password: string;
+      };
+    }
+  | {
+      type: GoogleOneTapCmType.CUSTOM;
+      successBody?: {
+        googleIdToken: string;
+      };
+    }
+);
 
-export type GoogleOneTapCmViewProps = {
-  url: string;
-  onLoad: (event: { nativeEvent: OnLoadEventPayload }) => void;
-  style?: StyleProp<ViewStyle>;
-};
+export enum GoogleOneTapCmType {
+  PUBLIC_KEY,
+  PASSWORD,
+  CUSTOM,
+}

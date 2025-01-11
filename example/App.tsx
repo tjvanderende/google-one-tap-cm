@@ -1,37 +1,25 @@
 import { useEvent } from 'expo';
-import GoogleOneTapCm, { GoogleOneTapCmView } from 'google-one-tap-cm';
+import GoogleOneTapCm from 'google-one-tap-cm';
 import { Button, SafeAreaView, ScrollView, Text, View } from 'react-native';
 
 export default function App() {
-  const onChangePayload = useEvent(GoogleOneTapCm, 'onChange');
+  const onLoginPayload = useEvent(GoogleOneTapCm, 'onLogin');
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.container}>
         <Text style={styles.header}>Module API Example</Text>
-        <Group name="Constants">
-          <Text>{GoogleOneTapCm.PI}</Text>
-        </Group>
-        <Group name="Functions">
-          <Text>{GoogleOneTapCm.hello()}</Text>
-        </Group>
         <Group name="Async functions">
           <Button
-            title="Set value"
+            title="Login"
             onPress={async () => {
-              await GoogleOneTapCm.setValueAsync('Hello from JS!');
+              await GoogleOneTapCm.login();
             }}
           />
         </Group>
         <Group name="Events">
-          <Text>{onChangePayload?.value}</Text>
-        </Group>
-        <Group name="Views">
-          <GoogleOneTapCmView
-            url="https://www.example.com"
-            onLoad={({ nativeEvent: { url } }) => console.log(`Loaded: ${url}`)}
-            style={styles.view}
-          />
+          <Text>{onLoginPayload?.success ? 'Login successful' : 'Login failed'}</Text>
+          <Text>{JSON.stringify(onLoginPayload?.successBody)}</Text>
         </Group>
       </ScrollView>
     </SafeAreaView>
