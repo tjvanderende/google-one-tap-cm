@@ -1,5 +1,6 @@
 import { useEvent } from "expo";
-import GoogleOneTapCm from "google-one-tap-cm";
+import GoogleOneTapCm, { useAutoLogin } from "google-one-tap-cm";
+import { useEffect } from "react";
 import {
   Button,
   SafeAreaView,
@@ -12,8 +13,7 @@ import {
 } from "react-native";
 
 export default function App() {
-  const onLoginPayload = useEvent(GoogleOneTapCm, "onLogin");
-  const onLogoutPayload = useEvent(GoogleOneTapCm, "onLogout");
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.container}>
@@ -25,22 +25,6 @@ export default function App() {
               await GoogleOneTapCm.loginWithButton();
             }}
           />
-          <Button
-            title="Logout"
-            onPress={async () => {
-              await GoogleOneTapCm.logout();
-            }}
-          />
-        </Group>
-        <Group name="Events">
-          <Text>
-            {onLoginPayload?.success ? "Login successful" : "Login failed"}
-          </Text>
-          <Text>{JSON.stringify(onLoginPayload?.successBody)}</Text>
-          <Text>
-            {onLogoutPayload?.success ? "Logout successful" : "Logout failed"}
-          </Text>
-          <Text>{JSON.stringify(onLogoutPayload?.success)}</Text>
         </Group>
       </ScrollView>
     </SafeAreaView>

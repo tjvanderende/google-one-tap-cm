@@ -31,9 +31,11 @@ const config: ExpoConfig = {
         webClientId: process.env.GOOGLE_WEB_CLIENT_ID,
       },
     ],
+    "expo-router",
   ],
   web: {
     favicon: "./assets/favicon.png",
+    bundler: "metro",
   },
 };
 

@@ -24,6 +24,9 @@ export type LoginEventPayload = {
       type: GoogleOneTapCmType.CUSTOM;
       successBody?: {
         googleIdToken: string;
+        username: string;
+        displayName: string;
+        profileUrl: string;
       };
     }
 );

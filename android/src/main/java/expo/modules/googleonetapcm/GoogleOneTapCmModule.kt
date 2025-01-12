@@ -28,10 +28,8 @@ class GoogleOneTapCmModule : Module() {
  
   private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
   private lateinit var credentialManager: CredentialManager
-  private var webClientId: String? = null
-  private var autoSelectEnabled: Boolean = false
-  private var filterByAuthorizedAccounts: Boolean = false
   private lateinit var request: GetCredentialRequest
+  private var webClientId: String? = null
 
   override fun definition() = ModuleDefinition {
     Name("GoogleOneTapCm")
@@ -51,10 +49,10 @@ class GoogleOneTapCmModule : Module() {
       }
     }
 
-    AsyncFunction("login") {
+    AsyncFunction("login") { isFirstTime: Boolean -> 
       val activity = appContext.currentActivity
             ?: throw Exception("Activity is null")
-      val googleIdOption = initializeGoogleSignIn()
+      val googleIdOption = initializeGoogleSignIn(isFirstTime)
       
       request = GetCredentialRequest.Builder()
         .addCredentialOption(googleIdOption)
@@ -138,6 +136,7 @@ class GoogleOneTapCmModule : Module() {
         Log.d("GoogleOneTapCm", "handleSignIn with public key credential: $responseJson")
         successBody = mapOf(
           "publicKey" to responseJson
+
         )
         successEnum = GoogleOneTapCmType.PUBLIC_KEY
       }
@@ -147,7 +146,7 @@ class GoogleOneTapCmModule : Module() {
         Log.d("GoogleOneTapCm", "handleSignIn with password credential: $username, $password")
         successBody = mapOf(
           "username" to username,
-          "password" to password
+          "password" to password,
         )
         successEnum = GoogleOneTapCmType.PASSWORD
       }
@@ -159,7 +158,10 @@ class GoogleOneTapCmModule : Module() {
               .createFrom(credential.data)
             Log.d("GoogleOneTapCm", "handleSignIn with googleIdTokenCredential: $googleIdTokenCredential")
             successBody = mapOf(
-              "googleIdToken" to googleIdTokenCredential.idToken
+              "googleIdToken" to googleIdTokenCredential.idToken,
+              "username" to googleIdTokenCredential.id,
+              "profileUrl" to googleIdTokenCredential.profilePictureUri.toString(),
+              "displayName" to googleIdTokenCredential.displayName.toString(),
             )
             successEnum = GoogleOneTapCmType.CUSTOM
           } catch (e: GoogleIdTokenParsingException) {
@@ -191,11 +193,18 @@ class GoogleOneTapCmModule : Module() {
     ))
   }
 
-  fun initializeGoogleSignIn(): GetGoogleIdOption {
+  /**
+   * If first time the user is visiting the application, show all the options.
+   * So `filterByAuthorizedAccounts` and `autoSelect` false.
+   * If its not the first time for the user, we should automatically login.
+   */
+  fun initializeGoogleSignIn(
+    autoLogin: Boolean = true
+  ): GetGoogleIdOption {
     return GetGoogleIdOption.Builder()
-      .setFilterByAuthorizedAccounts(true)
+      .setFilterByAuthorizedAccounts(autoLogin)
       .setServerClientId(webClientId.toString())
-      .setAutoSelectEnabled(true)
+      .setAutoSelectEnabled(autoLogin)
      // .setNonce(<nonce string to use when generating a Google ID token>)
       .build()
   }

@@ -3,7 +3,7 @@ import { NativeModule, requireNativeModule } from "expo";
 import { GoogleOneTapCmModuleEvents } from "./GoogleOneTapCm.types";
 
 declare class GoogleOneTapCmModule extends NativeModule<GoogleOneTapCmModuleEvents> {
-  login(): Promise<void>;
+  login(isFirstTime: boolean): Promise<void>;
   loginWithButton(): Promise<void>;
   logout(): Promise<void>;
 }
