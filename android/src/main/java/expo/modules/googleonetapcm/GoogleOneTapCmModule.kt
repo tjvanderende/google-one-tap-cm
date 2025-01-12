@@ -15,45 +15,48 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import android.util.Log
+import androidx.credentials.ClearCredentialStateRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import androidx.credentials.CredentialManager
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import kotlinx.coroutines.launch
-import expo.modules.googleonetapcm.GoogleOneTapCmType
 
 var TAG = "GoogleOneTapCm"
 class GoogleOneTapCmModule : Module() {
-  // Each module class must implement the definition function. The definition consists of components
-  // that describes the module's functionality and behavior.
-  // See https://docs.expo.dev/modules/module-api for more details about available components.
+ 
   private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
   private lateinit var credentialManager: CredentialManager
   private var webClientId: String? = null
   private var autoSelectEnabled: Boolean = false
   private var filterByAuthorizedAccounts: Boolean = false
+  private lateinit var request: GetCredentialRequest
 
   override fun definition() = ModuleDefinition {
     Name("GoogleOneTapCm")
     Events("onLogin", "onLogout")
-
+    
     OnCreate {
       val applicationInfo = appContext.reactContext?.packageManager?.getApplicationInfo(appContext.reactContext?.packageName.toString(), PackageManager.GET_META_DATA)
       webClientId = applicationInfo?.metaData?.getString("webClientId")
+      val activity = appContext.currentActivity
+        ?: throw Exception("Activity is null")
+
+      if (!::credentialManager.isInitialized) {
+        credentialManager = CredentialManager.create(activity)
+      }
+      if (webClientId == null) {
+        throw Exception("webClientId is null")
+      }
     }
 
     AsyncFunction("login") {
       val activity = appContext.currentActivity
             ?: throw Exception("Activity is null")
-      
-      // Initialize credentialManager if not already initialized
-      if (!::credentialManager.isInitialized) {
-        credentialManager = CredentialManager.create(activity)
-      }
-      
       val googleIdOption = initializeGoogleSignIn()
-
-      val request: GetCredentialRequest = GetCredentialRequest.Builder()
+      
+      request = GetCredentialRequest.Builder()
         .addCredentialOption(googleIdOption)
         .build()
 
@@ -70,6 +73,58 @@ class GoogleOneTapCmModule : Module() {
         }
       }
     }
+
+    AsyncFunction("logout") {
+      handleSignOut()
+    }
+
+    AsyncFunction("loginWithButton") {
+      val activity = appContext.currentActivity
+            ?: throw Exception("Activity is null")
+      val googleIdOption = initializeGoogleSignInWithButton()
+
+      request = GetCredentialRequest.Builder()
+        .addCredentialOption(googleIdOption)
+        .build()
+
+      coroutineScope.launch {
+        try {
+          val result = credentialManager.getCredential(
+            request = request,
+            context = activity,
+          )
+          handleSignIn(result)
+        } catch (e: GetCredentialException) {
+          //handleFailure(e)
+          e.printStackTrace()
+          Log.e(TAG, "GetCredentialException: ${e.message}")
+          sendEvent("onLogin", mapOf(
+            "success" to false,
+            "errorBody" to e.message
+          ))
+        }
+      }
+    }
+  }
+
+  fun handleSignOut() {
+    val stateRequest = ClearCredentialStateRequest()
+    coroutineScope.launch {
+      try {
+        credentialManager.clearCredentialState(
+          request = stateRequest
+        );
+        sendEvent("onLogout", mapOf(
+          "success" to true
+        ))
+      } catch (e: Exception) {
+        e.printStackTrace()
+        sendEvent("onLogout", mapOf(
+          "success" to false,
+          "errorBody" to e.message
+        ))
+      }
+    }
   }
 
   fun handleSignIn(result: GetCredentialResponse) {
@@ -78,10 +133,7 @@ class GoogleOneTapCmModule : Module() {
     var successBody: Map<String, Any> = emptyMap()
     var successEnum: GoogleOneTapCmType? = null
     when (credential) {
-      // Passkey credential
       is PublicKeyCredential -> {
-        // Share responseJson such as a GetCredentialResponse on your server to
-        // validate and authenticate
         val responseJson = credential.authenticationResponseJson
         Log.d("GoogleOneTapCm", "handleSignIn with public key credential: $responseJson")
         successBody = mapOf(
@@ -89,10 +141,7 @@ class GoogleOneTapCmModule : Module() {
         )
         successEnum = GoogleOneTapCmType.PUBLIC_KEY
       }
-
-      // Password credential
       is PasswordCredential -> {
-        // Send ID and password to your server to validate and authenticate.
         val username = credential.id
         val password = credential.password
         Log.d("GoogleOneTapCm", "handleSignIn with password credential: $username, $password")
@@ -149,5 +198,9 @@ class GoogleOneTapCmModule : Module() {
       .setAutoSelectEnabled(true)
      // .setNonce(<nonce string to use when generating a Google ID token>)
       .build()
+  }
+
+  fun initializeGoogleSignInWithButton(): GetSignInWithGoogleOption {
+    return GetSignInWithGoogleOption.Builder(webClientId.toString()).build()
   }
 }

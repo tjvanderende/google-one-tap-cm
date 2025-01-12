@@ -1,5 +1,6 @@
 export type GoogleOneTapCmModuleEvents = {
   onLogin: (params: LoginEventPayload) => void;
+  onLogout: (params: LogoutEventPayload) => void;
 };
 
 export type LoginEventPayload = {
@@ -26,6 +27,11 @@ export type LoginEventPayload = {
       };
     }
 );
+
+export type LogoutEventPayload = {
+  success: boolean;
+  errorBody?: string;
+};
 
 export enum GoogleOneTapCmType {
   PUBLIC_KEY,

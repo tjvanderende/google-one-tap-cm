@@ -1,14 +1,25 @@
-import { registerWebModule, NativeModule } from 'expo';
+import { registerWebModule, NativeModule } from "expo";
 
-import { GoogleOneTapCmModuleEvents } from './GoogleOneTapCm.types';
+import {
+  GoogleOneTapCmModuleEvents,
+  GoogleOneTapCmType,
+} from "./GoogleOneTapCm.types";
 
 class GoogleOneTapCmModule extends NativeModule<GoogleOneTapCmModuleEvents> {
-  PI = Math.PI;
-  async setValueAsync(value: string): Promise<void> {
-    this.emit('onChange', { value });
+  login() {
+    this.emit("onLogin", {
+      success: true,
+      type: GoogleOneTapCmType.PUBLIC_KEY,
+      successBody: {
+        publicKey: "123",
+      },
+    });
   }
-  hello() {
-    return 'Hello world! 👋';
+
+  logout() {
+    this.emit("onLogout", {
+      success: true,
+    });
   }
 }
 
