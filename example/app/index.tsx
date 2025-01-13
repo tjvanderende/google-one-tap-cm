@@ -1,9 +1,5 @@
-import { useEvent } from "expo";
-import { router } from "expo-router";
-import GoogleOneTapCm, {
-  GoogleOneTapCmType,
-  useAutoLogin,
-} from "google-one-tap-cm";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import GoogleOneTapCm, { GoogleOneTapCmType } from "google-one-tap-cm";
 import { useEffect } from "react";
 import {
   Button,
@@ -15,26 +11,22 @@ import {
   ViewStyle,
   StyleProp,
 } from "react-native";
-
+import { loggedInUsingButtonKey } from "../constants";
 export default function App() {
-  /**
-   * Normally you would include a few checks.
-   * Usually when the user opens the app for the first time, its a good idea to not push them to login.
-   * Let them press the button first, and login using the Google One Tap button.
-   * - Was onboarding of the app completed?
-   * - Was the user already logged in once?
-   */
-  useAutoLogin(
-    () => {
-      router.push("/home");
-    },
-    () => {
-      console.log("Login failed");
-    },
-  );
+  const handleLoginUsingButton = async () => {
+    console.log("Login using button");
+    try {
+      await AsyncStorage.setItem(loggedInUsingButtonKey, "true");
+      console.log("Login using button 2");
+      GoogleOneTapCm.loginWithButton();
+      console.log("Login using button 3");
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
-    GoogleOneTapCm.addListener("onLogin", (payload) => {
+    const subscription = GoogleOneTapCm.addListener("onLogin", (payload) => {
       if (payload.success) {
         if (payload.type === GoogleOneTapCmType.PUBLIC_KEY) {
           console.log(payload.successBody?.publicKey);
@@ -56,6 +48,10 @@ export default function App() {
         }
       }
     });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   return (
@@ -63,12 +59,7 @@ export default function App() {
       <ScrollView style={styles.container}>
         <Text style={styles.header}>Module API Example</Text>
         <Group name="Login functions" style={styles.verticalGroup}>
-          <Button
-            title="Login"
-            onPress={async () => {
-              await GoogleOneTapCm.loginWithButton();
-            }}
-          />
+          <Button title="Login" onPress={handleLoginUsingButton} />
         </Group>
       </ScrollView>
     </SafeAreaView>

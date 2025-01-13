@@ -2,4 +2,3 @@
 // and on native platforms to GoogleOneTapCmModule.ts
 export { default } from "./GoogleOneTapCmModule";
 export * from "./GoogleOneTapCm.types";
-export * from "./GoogleOnTapCm.hooks";

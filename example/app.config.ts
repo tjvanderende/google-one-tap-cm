@@ -13,6 +13,7 @@ const config: ExpoConfig = {
     resizeMode: "contain",
     backgroundColor: "#ffffff",
   },
+  scheme: "googleonetapcmexample",
   ios: {
     supportsTablet: true,
     bundleIdentifier: "expo.modules.googleonetapcm.example",

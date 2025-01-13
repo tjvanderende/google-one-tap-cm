@@ -28,11 +28,10 @@
   "author": "Tjibbe van der Ende <tjvanderende@hotmail.com> (https://github.com/tjvanderende)",
   "license": "MIT",
   "homepage": "https://github.com/tjvanderende/google-one-tap-cm#readme",
-  "dependencies": {},
   "devDependencies": {
     "@types/react": "~18.3.12",
-    "expo-module-scripts": "^4.0.3",
     "expo": "~52.0.0",
+    "expo-module-scripts": "^4.0.3",
     "react-native": "0.76.0"
   },
   "peerDependencies": {

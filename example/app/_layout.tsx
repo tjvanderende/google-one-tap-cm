@@ -1,6 +1,5 @@
 import { router, Stack } from "expo-router";
-import { useAutoLogin } from "google-one-tap-cm";
-
+import { useAutoLogin } from "../hooks/useAutoLogin";
 export default function RootLayout() {
   useAutoLogin(
     () => {
